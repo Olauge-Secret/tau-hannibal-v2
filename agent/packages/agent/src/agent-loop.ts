@@ -180,7 +180,7 @@ async function runLoop(
 	// errors on the same file, force the model to move on.
 	const editErrorsByFile = new Map<string, number>();
 	const stuckFilesAlerted = new Set<string>();
-	const EDIT_ERROR_THRESHOLD_PER_FILE = 3;
+	const EDIT_ERROR_THRESHOLD_PER_FILE = 2;
 
 	// Outer loop: continues when queued follow-up messages arrive after agent would stop
 	while (true) {

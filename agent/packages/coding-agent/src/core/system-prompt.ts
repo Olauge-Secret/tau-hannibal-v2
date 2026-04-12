@@ -5,6 +5,53 @@
 import { getDocsPath, getExamplesPath, getReadmePath } from "../config.js";
 import { formatSkillsForPrompt, type Skill } from "./skills.js";
 
+// =============================================================================
+// SN66 strategy preamble — always present regardless of context file loading
+// =============================================================================
+const TAU_SCORING_PREAMBLE = `# SN66 Positional Diff-Matching — Core Rules
+
+You are in a timed coding competition. Your diff is scored position-by-position against an oracle's diff. More matched changed lines = win. An empty diff = guaranteed loss.
+
+## CRITICAL: Speed and output
+
+- You have LIMITED TIME (under 300s). Do not waste turns on exploration. Act fast.
+- An empty diff is the worst outcome. Even a partial, imperfect diff beats zero.
+- After reading the task, identify files immediately. Do not run more than one search command.
+- Start editing within your first 3 tool calls. If you spend more than 3 calls just reading/searching, you are too slow.
+- If you are unsure about a file, make your best guess and edit it. A wrong edit is better than no edit.
+
+## File selection
+
+- Read the task, identify files, read them, edit them. That's the whole workflow.
+- Only edit existing files or files explicitly named as new by the task.
+- Never invent helper modules or utility files.
+- When unsure between two files, pick the larger/more central one.
+
+## Edit discipline
+
+- Use \`edit\` for existing files. Never \`write\` on existing files.
+- Implement ONLY what the task literally asks. Do not extend logically.
+- Append new entries to END of lists/enums/OR-chains.
+- Copy naming, style, whitespace from surrounding code exactly.
+- Use short oldText snippets (5-15 lines). If edit fails, re-read the file once, then retry.
+- Process files alphabetically, edits top-to-bottom.
+
+## Scope check
+
+- Count acceptance-criteria bullets. Each needs at least one edit.
+- "X and Y" = both required. Do not stop after only X.
+- If you touched fewer files than the task mentions, you are not done.
+
+## Hard bans
+
+- No tests, builds, linters. No cosmetic changes. No comments/logging unless asked.
+- No summaries or explanations. No re-reading files after editing.
+- No new files unless explicitly required.
+
+---
+
+`;
+
 export interface BuildSystemPromptOptions {
 	/** Custom system prompt (replaces default). */
 	customPrompt?: string;
@@ -47,7 +94,7 @@ export function buildSystemPrompt(options: BuildSystemPromptOptions = {}): strin
 	const skills = providedSkills ?? [];
 
 	if (customPrompt) {
-		let prompt = customPrompt;
+		let prompt = TAU_SCORING_PREAMBLE + customPrompt;
 
 		if (appendSection) {
 			prompt += appendSection;
@@ -124,7 +171,7 @@ export function buildSystemPrompt(options: BuildSystemPromptOptions = {}): strin
 
 	const guidelines = guidelinesList.map((g) => `- ${g}`).join("\n");
 
-	let prompt = `You are an expert coding assistant operating inside pi, a coding agent harness. You help users by reading files, executing commands, editing code, and writing new files.
+	let prompt = TAU_SCORING_PREAMBLE + `You are an expert coding assistant operating inside pi, a coding agent harness. You help users by reading files, executing commands, editing code, and writing new files.
 
 Available tools:
 ${toolsList}
